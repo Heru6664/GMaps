@@ -5,7 +5,8 @@ import {
   View,
   Dimensions,
   TouchableOpacity,
-  Platform
+  Platform,
+  Image
 } from "react-native";
 import MapView, {
   PROVIDER_GOOGLE,
@@ -13,6 +14,7 @@ import MapView, {
   Marker,
   AnimatedRegion
 } from "react-native-maps";
+import marker from "./assets/marker.png";
 
 const { width, height } = Dimensions.get("window");
 
@@ -31,44 +33,13 @@ export default class App extends Component {
         longitude: LONGITUDE,
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA
-      },
-      coordinate: {
-        latitude: LATITUDE,
-        longitude: LONGITUDE
       }
     };
   }
 
-  onRegionChange(region) {
+  onRegionChange = region => {
     this.setState({ region });
-  }
-
-  animateRandomCoordinate() {
-    const { coordinate } = this.state;
-    const newCoordinate = {
-      latitude: LATITUDE + (Math.random() - 0.5) * (LATITUDE_DELTA / 2),
-      longitude: LONGITUDE + (Math.random() - 0.5) * (LONGITUDE_DELTA / 2)
-    };
-
-    if (Platform.OS === "android") {
-      if (this.marker) {
-        this.marker._component.animateMarkerToCoordinate(newCoordinate, 500);
-        this.map.animateCamera({ center: newCoordinate });
-      }
-    } else {
-      coordinate.timing(newCoordinate).start();
-    }
-  }
-
-  randomCoordinate() {
-    const region = this.state.region;
-    return {
-      latitude:
-        region.latitude + (Math.random() - 0.5) * (region.latitudeDelta / 2),
-      longitude:
-        region.longitude + (Math.random() - 0.5) * (region.longitudeDelta / 2)
-    };
-  }
+  };
 
   render() {
     return (
@@ -78,19 +49,13 @@ export default class App extends Component {
           ref={ref => {
             this.map = ref;
           }}
-          mapType={MAP_TYPES.TERRAIN}
           style={styles.map}
           initialRegion={this.state.region}
-          onRegionChange={region => this.onRegionChange(region)}
-          showsUserLocation={true}
-        >
-          <Marker.Animated
-            ref={marker => {
-              this.marker = marker;
-            }}
-            coordinate={this.state.coordinate}
-          />
-        </MapView>
+          onRegionChangeComplete={this.onRegionChange}
+        />
+        <View style={styles.markerFixed}>
+          <Image style={styles.marker} source={marker} />
+        </View>
         <View style={[styles.bubble, styles.latlng]}>
           <Text style={styles.centeredText}>
             {this.state.region.latitude.toPrecision(7)}
@@ -99,10 +64,7 @@ export default class App extends Component {
           </Text>
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => this.animateRandomCoordinate()}
-            style={[styles.bubble, styles.button]}
-          >
+          <TouchableOpacity style={[styles.bubble, styles.button]}>
             <Text style={styles.buttonText}>Animate </Text>
           </TouchableOpacity>
         </View>
@@ -125,11 +87,22 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject
   },
+  markerFixed: {
+    left: "50%",
+    marginLeft: -24,
+    marginTop: -48,
+    position: "absolute",
+    top: "50%"
+  },
   bubble: {
     backgroundColor: "rgba(255,255,255,0.7)",
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 20
+  },
+  marker: {
+    height: 48,
+    width: 48
   },
   latlng: {
     width: 200,
