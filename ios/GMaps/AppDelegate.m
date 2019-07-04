@@ -12,12 +12,15 @@
 #import <React/RCTRootView.h>
 
 #import <GoogleMaps/GoogleMaps.h>
+@import GoogleMaps;
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  [GMSServices provideAPIKey:@"AIzaSyADzFyXrtD-Mo8-YAMdjT6UWP7rZV13SLo"]; 
+  [GMSServices provideAPIKey:@"AIzaSyDD6vgAsjYM2h79Sn63aalhPfJ78f8z1Gc"];
+//  [GMSPlacesClient provideAPIKey:@"YOUR_API_KEY"];
+  
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"GMaps"
