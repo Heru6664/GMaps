@@ -15,6 +15,7 @@ import MapView, {
   AnimatedRegion
 } from "react-native-maps";
 import marker from "./assets/marker.png";
+import Geolocation from "@react-native-community/geolocation";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,18 +29,53 @@ export default class App extends Component {
   constructor() {
     super();
     this.state = {
-      region: {
-        latitude: LATITUDE,
-        longitude: LONGITUDE,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA
+      // mapRegion: {
+      //   latitude: LATITUDE,
+      //   longitude: LONGITUDE,
+      //   latitudeDelta: LATITUDE_DELTA,
+      //   longitudeDelta: LONGITUDE_DELTA
+      // },
+      mapRegion: null,
+      lastLat: null,
+      lastLong: null,
+      selectedPlace: {
+        latitude: "",
+        longitude: ""
       }
     };
   }
 
-  onRegionChange = region => {
-    this.setState({ region });
+  componentDidMount() {
+    Geolocation.getCurrentPosition(
+      position => {
+        let region = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          latitudeDelta: 0.00922 * 1.5,
+          longitudeDelta: 0.00421 * 1.5
+        };
+        this.onRegionChange(region, region.latitude, region.longitude);
+      },
+      err => console.log("error", err)
+    );
+  }
+
+  onRegionChange = (region, lastLat, lastLong) => {
+    this.setState({
+      mapRegion: region,
+      lastLat: lastLat || this.state.lastLat,
+      lastLong: lastLong || this.state.lastLong
+    });
   };
+
+  setLocation() {
+    this.setState({
+      selectedPlace: {
+        latitude: this.state.mapRegion.latitude,
+        longitude: this.state.mapRegion.longitude
+      }
+    });
+  }
 
   render() {
     return (
@@ -50,21 +86,26 @@ export default class App extends Component {
             this.map = ref;
           }}
           style={styles.map}
-          initialRegion={this.state.region}
-          onRegionChangeComplete={this.onRegionChange}
+          initialRegion={this.state.mapRegion}
+          onRegionChangeComplete={region =>
+            this.onRegionChange(region, region.latitude, region.longitude)
+          }
         />
         <View style={styles.markerFixed}>
           <Image style={styles.marker} source={marker} />
         </View>
-        <View style={[styles.bubble, styles.latlng]}>
+        {/* <View style={[styles.bubble, styles.latlng]}>
           <Text style={styles.centeredText}>
-            {this.state.region.latitude.toPrecision(7)}
+            {this.state.mapRegion.latitude.toPrecision(7)}
             {",  "}
-            {this.state.region.longitude.toPrecision(7)}
+            {this.state.mapRegion.longitude.toPrecision(7)}
           </Text>
-        </View>
+        </View> */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.bubble, styles.button]}>
+          <TouchableOpacity
+            style={[styles.bubble, styles.button]}
+            onPress={() => this.setLocation()}
+          >
             <Text style={styles.buttonText}>Animate </Text>
           </TouchableOpacity>
         </View>
