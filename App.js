@@ -3,7 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
-  Dimensions,
+  ActivityIndicator,
   TouchableOpacity,
   Platform,
   Image
@@ -17,18 +17,20 @@ import MapView, {
 import marker from "./assets/marker.png";
 import Geolocation from "@react-native-community/geolocation";
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
+import Axios from "axios";
 
 export default class App extends Component {
   constructor() {
     super();
     this.state = {
       mapRegion: null,
-      lastLat: null,
-      lastLong: null,
+      lastLat: 0.0,
+      lastLong: 0.0,
       selectedPlace: {
         latitude: "",
         longitude: ""
-      }
+      },
+      isLoading: false
     };
   }
 
@@ -53,6 +55,25 @@ export default class App extends Component {
       });
   }
 
+  reverseGeocoding = () => {
+    let latitude = this.state.lastLat;
+    let longitude = this.state.lastLong;
+    let SERVER_KEY = "AIzaSyC_y_l2VNFmZ9C4_nnFzqFbTeki8cmGStM";
+
+    this.setState({ isLoading: true });
+    Axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${SERVER_KEY}`
+    )
+      .then(res => {
+        this.setState({ isLoading: false });
+        console.log("response", res);
+      })
+      .catch(err => {
+        this.setState({ isLoading: false });
+        console.log("err", err);
+      });
+  };
+
   getCurrentPosition = () => {
     Geolocation.getCurrentPosition(
       position => {
@@ -69,11 +90,14 @@ export default class App extends Component {
   };
 
   onRegionChange = (region, lastLat, lastLong) => {
-    this.setState({
-      mapRegion: region,
-      lastLat: lastLat || this.state.lastLat,
-      lastLong: lastLong || this.state.lastLong
-    });
+    this.setState(
+      {
+        mapRegion: region,
+        lastLat: lastLat || this.state.lastLat,
+        lastLong: lastLong || this.state.lastLong
+      },
+      () => this.reverseGeocoding()
+    );
   };
 
   setLocation() {
@@ -103,13 +127,22 @@ export default class App extends Component {
         <View style={styles.markerFixed}>
           <Image style={styles.marker} source={marker} />
         </View>
-        {/* <View style={[styles.bubble, styles.latlng]}>
-          <Text style={styles.centeredText}>
-            {this.state.mapRegion.latitude.toPrecision(7)}
-            {",  "}
-            {this.state.mapRegion.longitude.toPrecision(7)}
-          </Text>
-        </View> */}
+        <View style={[styles.address]}>
+          <View style={{ width: "10%" }}>
+            <ActivityIndicator
+              size="small"
+              color="white"
+              animating={this.state.isLoading}
+            />
+          </View>
+          <View style={{ width: "80%" }}>
+            <Text style={{ color: "white" }}>
+              {this.state.lastLat.toPrecision(7)}
+              {",  "}
+              {this.state.lastLong.toPrecision(7)}
+            </Text>
+          </View>
+        </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.bubble, styles.button]}
@@ -170,5 +203,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 5
+  },
+  address: {
+    width: "90%",
+    backgroundColor: "#2ecc71",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 10
   }
 });
