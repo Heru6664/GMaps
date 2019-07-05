@@ -10,6 +10,7 @@ import com.facebook.soloader.SoLoader;
 
 import com.airbnb.android.react.maps.MapsPackage;
 import com.reactnativecommunity.geolocation.GeolocationPackage;
+import com.showlocationservicesdialogbox.LocationServicesDialogBoxPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +28,9 @@ public class MainApplication extends Application implements ReactApplication {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
           new MapsPackage(),
-          new GeolocationPackage()
+          new GeolocationPackage(),
+          new LocationServicesDialogBoxPackage() 
+
       );
     }
 

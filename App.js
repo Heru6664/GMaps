@@ -16,25 +16,12 @@ import MapView, {
 } from "react-native-maps";
 import marker from "./assets/marker.png";
 import Geolocation from "@react-native-community/geolocation";
-
-const { width, height } = Dimensions.get("window");
-
-const ASPECT_RATIO = width / height;
-const LATITUDE = -6.192751;
-const LONGITUDE = 106.8344;
-const LATITUDE_DELTA = 0.0922;
-const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 
 export default class App extends Component {
   constructor() {
     super();
     this.state = {
-      // mapRegion: {
-      //   latitude: LATITUDE,
-      //   longitude: LONGITUDE,
-      //   latitudeDelta: LATITUDE_DELTA,
-      //   longitudeDelta: LONGITUDE_DELTA
-      // },
       mapRegion: null,
       lastLat: null,
       lastLong: null,
@@ -46,6 +33,27 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    LocationServicesDialogBox.checkLocationServicesIsEnabled({
+      message:
+        "<h2>Use Location ?</h2>This app wants to change your device settings:<br/><br/>Use GPS, Wi-Fi, and cell network for location<br/><br/><a href='#'>Learn more</a>",
+      ok: "YES",
+      cancel: "NO",
+      enableHighAccuracy: true, // true => GPS AND NETWORK PROVIDER, false => GPS OR NETWORK PROVIDER
+      showDialog: true, // false => Opens the Location access page directly
+      openLocationServices: true, // false => Directly catch method is called if location services are turned off
+      preventOutSideTouch: false, //true => To prevent the location services popup from closing when it is clicked outside
+      preventBackClick: false, //true => To prevent the location services popup from closing when it is clicked back button
+      providerListener: true // true ==> Trigger "locationProviderStatusChange" listener when the location state changes
+    })
+      .then(() => {
+        this.getCurrentPosition();
+      })
+      .catch(error => {
+        console.log(error.message);
+      });
+  }
+
+  getCurrentPosition = () => {
     Geolocation.getCurrentPosition(
       position => {
         let region = {
@@ -58,7 +66,7 @@ export default class App extends Component {
       },
       err => console.log("error", err)
     );
-  }
+  };
 
   onRegionChange = (region, lastLat, lastLong) => {
     this.setState({
