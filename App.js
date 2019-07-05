@@ -98,6 +98,7 @@ export default class App extends Component {
           onRegionChangeComplete={region =>
             this.onRegionChange(region, region.latitude, region.longitude)
           }
+          showsUserLocation={true}
         />
         <View style={styles.markerFixed}>
           <Image style={styles.marker} source={marker} />
